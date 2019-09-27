@@ -77,6 +77,13 @@ export default mixins(
     calculatePickerDate (delta: number): string {
       throw new Error('Not implemented')
     },
+    isSelected (value: string) {
+      if (this.range && Array.isArray(this.value) && this.value.length === 2) {
+        return value >= this.value[0] && value <= this.value[1]
+      } else {
+        return Array.isArray(this.value) ? this.value.indexOf(value) !== -1 : value === this.value
+      }
+    },
     genButtonClasses (isAllowed: boolean, isFloating: boolean, isSelected: boolean, isCurrent: boolean) {
       return {
         'v-size--default': !isFloating,
