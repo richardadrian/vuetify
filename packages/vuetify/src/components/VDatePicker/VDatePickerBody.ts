@@ -42,7 +42,7 @@ export const VDatePickerBodyProps = {
     type: [String, Number],
     default: 0,
   },
-  hideCurrentDate: Boolean,
+  currentDate: String,
   readonly: Boolean,
   scrollable: Boolean,
   showWeekNumbers: Boolean,
@@ -138,7 +138,8 @@ export default mixins(
         props: {
           allowedDates: this.allowedDates,
           color: this.color,
-          currentDate: !this.hideCurrentDate ? this.currentDate : null,
+          showCurrent: this.showCurrent,
+          currentDate: this.currentDate,
           dark: this.dark,
           disabled: this.disabled,
           events: this.events,
@@ -170,7 +171,8 @@ export default mixins(
         props: {
           allowedDates: this.allowedDates,
           color: this.color,
-          currentDate: !this.hideCurrentDate ? this.currentMonth : null,
+          showCurrent: this.showCurrent,
+          currentDate: this.currentDate,
           dark: this.dark,
           disabled: this.disabled,
           events: this.events,

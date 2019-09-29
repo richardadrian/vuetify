@@ -46,7 +46,8 @@ type DatePickerValue = string | string[] | undefined
 type DatePickerType = 'date' | 'month' | 'year'
 
 export interface VDateScopedProps {
-  currentDate: String
+  currentDate: string
+  showCurrent: boolean
   dateClick: Function
   monthClick: Function
   yearClick: Function
@@ -89,13 +90,9 @@ export const VDateProps = {
   monthFormat: {
     type: Function,
   } as PropValidator<DatePickerFormatter>,
-  // formatters: {
-  //   type: Object,
-  //   default: () => ({}),
-  // } as PropValidator<Partial<VDateFormatters>>,
   activePicker: String as PropValidator<DatePickerType>,
   allowedDates: Function as PropValidator<AllowedDateFunction | undefined>,
-  currentDate: String,
+  showCurrent: [Boolean, String] as PropValidator<boolean | string>,
   max: String,
   min: String,
   multiple: Boolean,
@@ -111,6 +108,7 @@ export const VDateProps = {
     default: 'date',
     validator: (type: any) => ['month', 'date'].includes(type), // TODO: add year
   } as any as PropValidator<DatePickerType>,
+  reactive: Boolean, // This should really be called something else
 }
 
 export default mixins(
@@ -127,7 +125,7 @@ export default mixins(
 
   data () {
     const firstDate = this.value && wrapInArray(this.value)[0]
-    const currentDate = this.currentDate || new Date().toISOString()
+    const currentDate = typeof this.showCurrent === 'string' ? this.showCurrent : new Date().toISOString()
     const now = sanitizeDateString(currentDate, 'date')
     const internalPickerDate = sanitizeDateString(this.pickerDate || firstDate || now, this.type === 'month' ? 'year' : 'month')
 
@@ -177,7 +175,7 @@ export default mixins(
         if (length < 2) return dates => dates.length ? titleDateFormatter(dates[0]) : this.$vuetify.lang.t(this.selectedItemsText, 0)
         else return dates => this.$vuetify.lang.t(this.selectedItemsText, dates.length)
       } else {
-        return dates => dates.length ? titleDateFormatter(dates[0]) : '-'
+        return dates => dates.length && dates[0].split('-').length === 3 ? titleDateFormatter(dates[0]) : '-'
       }
     },
     defaultLandscapeTitleDate (): DatePickerMultipleFormatter {
@@ -187,6 +185,7 @@ export default mixins(
     },
     scopedSlotProps (): VDateScopedProps {
       return {
+        showCurrent: this.showCurrent !== false,
         currentDate: this.now,
         dateClick: this.dateClick,
         monthClick: this.monthClick,
@@ -240,10 +239,8 @@ export default mixins(
       // e.g. 2019-05-01 => 2019-05 when going from date to month
       if (this.internalDate.length) {
         this.internalDate = this.internalDate.map(date => sanitizeDateString(date, type)).filter(this.isDateAllowed)
+        this.emitInput()
       }
-    },
-    internalDate (internalDate: string[]) {
-      this.emitInput()
     },
     activePicker (activePicker: DatePickerType) {
       this.internalActivePicker = activePicker as PickerType
@@ -262,13 +259,14 @@ export default mixins(
     updatePickerDate (date: string) {
       this.internalPickerDate = date
     },
-    emitInput () {
+    emitInput (emitChange = true) {
       if (!this.internalDate.length) return
 
       const value = this.isMultiple ? this.internalDate : this.internalDate[0]
 
       this.$emit('input', value)
-      !this.multiple && this.$emit('change', value)
+
+      emitChange && !this.multiple && this.$emit('change', value)
     },
     checkMultipleProp () {
       if (this.value == null) return
@@ -285,6 +283,8 @@ export default mixins(
       if (this.type !== 'year') {
         this.internalPickerDate = value
         this.internalActivePicker = PickerType.Month
+
+        this.reactive && this.updateInternalDate(value, false)
       } else {
         this.updateInternalDate(value)
       }
@@ -293,6 +293,8 @@ export default mixins(
       if (this.type === 'date') {
         this.internalPickerDate = value
         this.internalActivePicker = PickerType.Date
+
+        this.reactive && this.updateInternalDate(value, false)
       } else {
         this.updateInternalDate(value)
       }
@@ -300,7 +302,7 @@ export default mixins(
     dateClick (value: string) {
       this.updateInternalDate(value)
     },
-    updateInternalDate (value: string) {
+    updateInternalDate (value: string, emitChange = true) {
       if (this.range) {
         this.internalDate.length === 2
           ? this.internalDate = [value]
@@ -315,6 +317,8 @@ export default mixins(
       } else {
         this.internalDate = [value]
       }
+
+      this.emitInput(emitChange)
     },
   },
 

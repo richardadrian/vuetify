@@ -28,6 +28,7 @@ export default mixins(
 
   props: {
     allowedDates: Function as PropValidator<AllowedDateFunction | undefined>,
+    showCurrent: Boolean,
     currentDate: String,
     disabled: Boolean,
     dateFormat: Function as PropValidator<DatePickerFormatter>,
@@ -102,7 +103,7 @@ export default mixins(
     genButton (value: string, isFloating: boolean, formatter: DatePickerFormatter) {
       const isAllowed = isDateAllowed(value, this.min, this.max, this.allowedDates)
       const isSelected = this.isSelected(value)
-      const isCurrent = value === this.currentDate
+      const isCurrent = this.showCurrent && value === this.currentDate
       const setColor = isSelected ? this.setBackgroundColor : this.setTextColor
       const color = (isSelected || isCurrent) && (this.color || 'accent')
 
