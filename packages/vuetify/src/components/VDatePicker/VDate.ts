@@ -20,8 +20,8 @@ export type DatePickerMultipleFormatter = (date: string[]) => string
 
 export interface VDateFormatters {
   yearFormat: DatePickerFormatter
-  titleDateFormat: DatePickerFormatter | DatePickerMultipleFormatter
-  landscapeTitleDateFormat: DatePickerFormatter | DatePickerMultipleFormatter
+  titleDateFormat: DatePickerTitleDateFormatter
+  landscapeTitleDateFormat: DatePickerTitleDateFormatter
   headerDateFormat: DatePickerFormatter
   headerMonthFormat: DatePickerFormatter
   dateFormat: DatePickerFormatter
@@ -42,30 +42,24 @@ export const enum PickerType {
   Date = 'date'
 }
 
-type DatePickerValue = string | string[] | undefined
-type DatePickerType = 'date' | 'month' | 'year'
+export type DatePickerValue = string | string[] | undefined
+export type DatePickerType = 'date' | 'month' | 'year'
 
-export interface VDateScopedProps {
+export type DatePickerTitleDateFormatter = (date: string | string[], type: string) => string
+
+export interface VDateScopedProps extends VDateFormatters {
   currentDate: string
   showCurrent: boolean
   dateClick: Function
   monthClick: Function
   yearClick: Function
-  // formatters: VDateFormatters
   value: string[]
   activePicker: PickerType
   updateActivePicker: Function
   pickerDate: string
   updatePickerDate: Function
   multiple: boolean
-  yearFormat: DatePickerFormatter
-  titleDateFormat: DatePickerFormatter | DatePickerMultipleFormatter
-  landscapeTitleDateFormat: DatePickerFormatter | DatePickerMultipleFormatter
-  headerDateFormat: DatePickerFormatter
-  headerMonthFormat: DatePickerFormatter
-  dateFormat: DatePickerFormatter
-  monthFormat: DatePickerFormatter
-  weekdayFormat: DatePickerFormatter
+  type: DatePickerType
 }
 
 export const VDateProps = {
@@ -74,7 +68,7 @@ export const VDateProps = {
   } as PropValidator<DatePickerFormatter>,
   titleDateFormat: {
     type: Function,
-  } as PropValidator<DatePickerFormatter>,
+  } as PropValidator<DatePickerTitleDateFormatter>,
   headerDateFormat: {
     type: Function,
   } as PropValidator<DatePickerFormatter>,
@@ -106,7 +100,7 @@ export const VDateProps = {
   type: {
     type: String,
     default: 'date',
-    validator: (type: any) => ['month', 'date'].includes(type), // TODO: add year
+    validator: (type: any) => ['month', 'date', 'year'].includes(type), // TODO: add year
   } as any as PropValidator<DatePickerType>,
   reactive: Boolean, // This should really be called something else
 }
@@ -156,7 +150,7 @@ export default mixins(
         headerDateFormat: this.headerDateFormat || createNativeLocaleFormatter(this.currentLocale, { year: 'numeric', timeZone: 'UTC' }, { length: 4 }),
       }
     },
-    defaultTitleDateFormatter (): DatePickerMultipleFormatter {
+    defaultTitleDateFormatter (): DatePickerTitleDateFormatter {
       const titleFormats = {
         year: { year: 'numeric', timeZone: 'UTC' },
         month: { month: 'long', timeZone: 'UTC' },
@@ -170,16 +164,18 @@ export default mixins(
         length: substrOptions[this.type],
       })
 
-      if (this.isMultiple) {
-        const length = this.internalDate.length
-        if (length < 2) return dates => dates.length ? titleDateFormatter(dates[0]) : this.$vuetify.lang.t(this.selectedItemsText, 0)
-        else return dates => this.$vuetify.lang.t(this.selectedItemsText, dates.length)
-      } else {
-        return dates => dates.length && dates[0].split('-').length === 3 ? titleDateFormatter(dates[0]) : '-'
+      return (date: string | string[], type: string): string => {
+        if (Array.isArray(date)) {
+          return date.length === 1 ? titleDateFormatter(date[0]) : this.$vuetify.lang.t(this.selectedItemsText, date.length)
+        } else if (type === 'month') {
+          return date.length && date[0].split('-').length === 2 ? titleDateFormatter(date[0]) : '-'
+        } else {
+          return date.length && date[0].split('-').length === 3 ? titleDateFormatter(date[0]) : '-'
+        }
       }
     },
-    defaultLandscapeTitleDate (): DatePickerMultipleFormatter {
-      return (date: string[]) => this.defaultTitleDateFormatter(date)
+    defaultLandscapeTitleDate (): DatePickerTitleDateFormatter {
+      return (date: string | string[], type: string) => this.defaultTitleDateFormatter(date, type)
         .replace(/([^\d\s])([\d])/g, (match, nonDigit, digit) => `${nonDigit} ${digit}`)
         .replace(', ', ',<br>')
     },
@@ -196,6 +192,7 @@ export default mixins(
         pickerDate: this.internalPickerDate,
         updatePickerDate: this.updatePickerDate,
         multiple: this.multiple,
+        type: this.type,
         ...this.computedFormatters,
       }
     },

@@ -114,6 +114,7 @@ export default Vue.extend({
             readonly: this.readonly,
             selectingYear: dateProps.activePicker === PickerType.Year,
             yearIcon: this.dateProps.yearIcon,
+            type: dateProps.type,
           },
           on: {
             'update:activePicker': dateProps.updateActivePicker,

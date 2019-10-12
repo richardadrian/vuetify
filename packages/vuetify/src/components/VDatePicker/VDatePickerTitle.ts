@@ -6,9 +6,9 @@ import { genPickerButton } from '../VPicker/VPicker'
 
 // Types
 import Vue, { VNode } from 'vue'
-import { PropValidator } from 'vue/types/options'
+import { PropValidator, PropType } from 'vue/types/options'
 import { DatePickerFormatter } from './util/createNativeLocaleFormatter'
-import { PickerType, DatePickerMultipleFormatter } from './VDate'
+import { PickerType, DatePickerType, DatePickerTitleDateFormatter } from './VDate'
 
 export default Vue.extend({
   name: 'v-date-picker-title',
@@ -16,7 +16,7 @@ export default Vue.extend({
   inheritAttrs: false,
 
   props: {
-    dateFormat: Function as PropValidator<DatePickerMultipleFormatter>,
+    dateFormat: Function as PropValidator<DatePickerTitleDateFormatter>,
     yearFormat: Function as PropValidator<DatePickerFormatter>,
     value: Array as PropValidator<string[]>,
     disabled: Boolean,
@@ -26,6 +26,7 @@ export default Vue.extend({
     yearIcon: {
       type: String,
     },
+    type: String as PropType<DatePickerType>,
   },
 
   data: () => ({
@@ -37,7 +38,7 @@ export default Vue.extend({
       return this.isReversing ? 'picker-reverse-transition' : 'picker-transition'
     },
     date (): string {
-      return this.dateFormat(this.value)
+      return this.dateFormat(this.value, this.type)
     },
     year (): string {
       return this.value && this.value.length ? this.yearFormat(this.value[0]) : '-'

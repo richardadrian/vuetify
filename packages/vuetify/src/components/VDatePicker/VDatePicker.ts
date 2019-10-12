@@ -37,6 +37,7 @@ export default Vue.extend({
           readonly: this.readonly,
           selectingYear: props.activePicker === PickerType.Year,
           yearIcon: this.yearIcon,
+          type: props.type,
         },
         slot: 'title',
         on: {
