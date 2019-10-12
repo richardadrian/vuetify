@@ -84,7 +84,7 @@ exports[`VDatePicker.ts should accept a custom current date 1`] = `
               </td>
               <td>
                 <button type="button"
-                        class="v-btn v-btn--rounded v-btn--outlined theme--light accent--text"
+                        class="v-btn v-btn--text v-btn--rounded theme--light"
                 >
                   <div class="v-btn__content">
                     1
