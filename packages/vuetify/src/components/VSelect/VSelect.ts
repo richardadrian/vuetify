@@ -305,7 +305,7 @@ export default baseMixins.extend<options>().extend({
     },
     closeConditional (e: Event) {
       return (
-        !this._isDestroyed &&
+        !this._isDestroyed && this.menuProps.closeOnClick &&
 
         // Click originates from outside the menu content
         this.content &&
